@@ -1,0 +1,231 @@
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+#include <SPI.h>
+#include <MFRC522.h>
+
+#define RST_PIN 9
+#define SS_PIN 10
+MFRC522 module_rfid(SS_PIN, RST_PIN);
+
+#define buzzer 3
+
+int LED = 5;
+int v=1;
+int tableau[3]={0,0,0};
+const int boutton2=3;
+//LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+float prix0=0;
+const int boutton=2;
+float prix1=5;
+float  prix2=150;
+float  prix3=10;
+const int pot=A3;
+void setup(){
+  //lcd.begin(16, 2);
+  lcd.init(); 
+  lcd.backlight(); 
+  pinMode(boutton,INPUT_PULLUP);
+  pinMode(LED,OUTPUT);
+   pinMode (3, OUTPUT);
+  SPI.begin();
+  module_rfid.PCD_Init();
+   Serial.println("   WELCOME");
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("     WELCOME");
+  Serial.begin(9600);
+}
+void loop() 
+{if ( ! module_rfid.PICC_IsNewCardPresent()) 
+  {
+    return;
+  }
+
+  if ( ! module_rfid.PICC_ReadCardSerial()) 
+  {
+    return;
+  }
+
+  String UID = "";
+
+  for (byte i = 0; i < module_rfid.uid.size; i++) {
+    UID.concat(String(module_rfid.uid.uidByte[i] < 0x10 ? " 0" : " "));
+    UID.concat(String(module_rfid.uid.uidByte[i], HEX));
+  }
+  UID.toUpperCase();
+  int valeurPot=analogRead(pot);
+  int val=map(valeurPot,0,1023,0,1);
+  if (val==0)
+      {
+        Serial.println(valeurPot);
+       digitalWrite(LED,HIGH);
+       delay(100);
+       digitalWrite(LED,LOW);
+  
+       delay(100);
+       Serial.println("AFFICHER LCD:");
+      
+      
+         if (UID.substring(1) == "01 CC 5A 1C")
+        // if (test==1)
+         {  digitalWrite(buzzer,HIGH);
+            delay(1000);
+            digitalWrite(buzzer,LOW);
+            delay(1000);
+          
+              prix0=prix0+prix1;
+              lcd.clear();
+              Serial.print(prix0);
+            lcd.setCursor(0,0);
+            lcd.print("Chocolat: 5dh ");
+            lcd.setCursor(0,1);
+            lcd.print("tot: ");
+            lcd.print(prix0);
+            lcd.println(" dh");
+            Serial.println("dh  CHOC");
+            tableau[0]=tableau[0]+1;
+            Serial.println(tableau[0]);
+              delay(1000);
+            
+          }
+       if (UID.substring(1) == "A0 62 93 22")
+      // if (test==2)
+              {  digitalWrite(buzzer,HIGH);
+            delay(1000);
+            digitalWrite(buzzer,LOW);
+            delay(1000);
+              prix0=prix0+prix2;
+              lcd.clear();
+              Serial.print(prix0);
+            lcd.setCursor(0,0);
+              lcd.print("T-Shirt:150dh ");
+              lcd.setCursor(0,1);
+              lcd.print("tot: ");
+              lcd.print(prix0);
+              lcd.println(" dh");
+              Serial.println("dh BIOS");
+              tableau[1]=tableau[1]+1;
+              delay(100);
+                }
+          if (UID.substring(1) == "27 06 1B 1B")
+          //if (test==3)
+              {  digitalWrite(buzzer,HIGH);
+            delay(1000);
+            digitalWrite(buzzer,LOW);
+            delay(1000);
+               tableau[2]=tableau[2]+1;
+               prix0=prix0+prix3;
+               lcd.clear();
+               Serial.print(prix0);
+               lcd.setCursor(0,0);
+               lcd.print("TOMATE: 10dh");
+               lcd.setCursor(0,1); 
+               lcd.print("tot: ");
+               lcd.print(prix0);
+               lcd.println(" dh");
+               Serial.println("dh TOM");
+               delay(100);
+               
+               }
+         } 
+    if (val==1)
+   {
+        digitalWrite(LED,HIGH);
+        delay(100);
+        digitalWrite(LED,LOW);
+       
+        delay(100);
+        Serial.println("AFFICHER LCD:");
+       
+         if (UID.substring(1) == "01 CC 5A 1C")
+         //if (test==1)
+          {    tone(buzzer, 1200, 100);
+               delay(125);
+              tone(buzzer, 1200, 100);
+              delay(2000);
+              tableau[0]=tableau[0]-1;
+              if (tableau[0]>=0)
+              {
+                 prix0=prix0-prix1;
+              lcd.clear();
+              lcd.setCursor(0,0);
+              lcd.print("Supp Chocolat: -39.95dh ");
+              lcd.setCursor(0,1);
+              lcd.print("tot: ");
+              if (prix0>=0)
+              {lcd.print(prix0);}
+              lcd.println(" dh");
+              Serial.println("dh  CHOC");
+            delay(100);
+               }
+              if(tableau[0]<0)
+              {
+               lcd.clear();
+              lcd.setCursor(0,0);
+              lcd.print("      Pas" );
+              lcd.setCursor(0,1);
+              lcd.print("de CHOC AU CHART" );
+              }
+           }
+       if (UID.substring(1) == "A0 62 93 220")
+         //if (test==2)
+            {  tone(buzzer, 1200, 100);
+                delay(125);
+                tone(buzzer, 1200, 100);
+                delay(2000);
+              tableau[1]=tableau[1]-1;
+              if (tableau[1]>=0)
+              {
+                 prix0=prix0-prix2;
+              lcd.clear();
+              Serial.print(prix0);
+              lcd.setCursor(0,0);
+              lcd.print("Supp T-Shirt:150dh");
+              lcd.setCursor(0,1);
+              lcd.print("tot: ");
+             if (prix0>=0)
+              {lcd.print(prix0);}
+              lcd.println(" dh");
+              Serial.println("dh bs");
+            delay(100);
+               }
+              if(tableau[1]<0)
+              {
+              lcd.clear();
+              lcd.setCursor(0,0);
+              lcd.print("      Pas" );
+              lcd.setCursor(0,1);
+              lcd.print("de T-Shirt AU CHART" );
+              }
+            }
+    if (UID.substring(1) == "27 06 1B 1B")
+      // if (test==3)
+            {  tone(buzzer, 1200, 100);
+               delay(125);
+              tone(buzzer, 1200, 100);
+               delay(2000);
+              tableau[2]=tableau[2]-1;
+              if (tableau[2]>=0)
+              {
+              prix0=prix0-prix3;
+              lcd.clear();
+              Serial.print(prix0);
+              lcd.setCursor(0,0);
+              lcd.print("Supp TOMATE:-10dh");
+              lcd.setCursor(0,1);
+              lcd.print("tot: ");
+              if (prix0>=0)
+              {lcd.print(prix0);}
+              lcd.println(" dh");
+              Serial.println("dh bs");
+            delay(100);
+               }
+              if(tableau[2]<0)
+              {
+              lcd.clear();
+              lcd.setCursor(0,0);
+              lcd.print("      Pas" );
+              lcd.setCursor(0,1);
+              lcd.print("de Tomate AU CHART" );
+              }
+    }}}
